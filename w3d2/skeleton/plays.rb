@@ -20,7 +20,7 @@ class Play
   end
 
   def self.find_by_title(title)
-    PlayDBConnection.instance.execute(<<-SQL, title)
+    play = PlayDBConnection.instance.execute(<<-SQL, title)
       SELECT
         *
       FROM
@@ -28,11 +28,14 @@ class Play
       WHERE
         title = ?
     SQL
+
+    Play.new(play.first)
   end
 
 
   def self.find_by_play_wright(name)
-    PlayDBConnection.instance.execute(<<-SQL, name)
+
+    playwrights = PlayDBConnection.instance.execute(<<-SQL, name)
       SELECT
         title
       FROM
@@ -42,6 +45,8 @@ class Play
       WHERE
         playwrights.name = ?
     SQL
+
+    playwrights.map{ |play| Play.new(play)}
   end
 
   def initialize(options)
@@ -49,6 +54,7 @@ class Play
     @title = options['title']
     @year = options['year']
     @playwright_id = options['playwright_id']
+
   end
 
   def create
@@ -76,7 +82,7 @@ class Play
 end
 
 
-class Playwight
+class Playwright
 
 
 # Playwright::all
@@ -89,8 +95,23 @@ class Playwight
 
   def self.all
     data = PlayDBConnection.instance.execute("SELECT * FROM Playwrights")
-    data.map{ |datum| Play.new(datum)}
+    data.map{ |datum| Playwright.new(datum)}
   end
+
+  def self.find_by_name(name)
+    person = PlayDBConnection.instance.execute(<<-SQL, name)
+      SELECT
+        *
+      FROM
+        playwrights
+      WHERE
+        name = ?
+    SQL
+    return nil unless person.length > 0
+
+    Playwright.new(person.first)
+  end
+
 
   def initialize(options)
     @id = options['id']
@@ -119,6 +140,19 @@ class Playwight
       WHERE
         id = ?
     SQL
+  end
+
+  def get_plays
+    raise "#{self} not in database" unless @id
+    plays = PlayDBConnection.instance.execute(<<-SQL, @id)
+      SELECT
+        *
+      FROM
+        plays
+      WHERE
+        playwright_id = ?
+    SQL
+    plays.map { |play| Play.new(play) }
   end
 
 end
