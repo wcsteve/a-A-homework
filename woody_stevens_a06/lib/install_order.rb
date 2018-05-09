@@ -24,6 +24,37 @@ def find_max_pair(arr)
   max
 end
 
+def install_order2(arr)
+  vertices = Hash.new(nil)
+  packages = []
+  count = 1
+
+  arr.each do |dependency_pair|
+    package = dependency_pair[0]
+    dependency = dependency_pair[1]
+
+    if vertices[package] == nil
+      vertices[package] = Vertex.new('package')
+      packages.push(package)
+      count += 1
+    end
+
+    if vertices[package] == nil
+      vertices[package] = count
+      count += 1
+    end
+  end
+
+  edges = []
+
+  arr.each do |edge|
+    edges.push(Edge.new(vertices[edge[1] - 1], vertices[edge[0] - 1]))
+  end
+  results = topological_sort(vertices)
+  results.map!{ |vertex| vertex.value}
+  return results
+end
+
 def install_order(arr)
   vertices = []
   max = find_max_pair(arr)
